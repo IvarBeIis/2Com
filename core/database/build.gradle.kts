@@ -24,6 +24,7 @@ dependencies {
     ksp(libs.room.compiler)
     implementation(libs.sqlcipher)
     implementation(libs.sqlite.ktx)
+    implementation(libs.datastore)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
