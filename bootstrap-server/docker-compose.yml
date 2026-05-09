@@ -1,0 +1,15 @@
+services:
+  bootstrap:
+    build: .
+    container_name: 2com-bootstrap
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - PUBLIC_IP=80.211.207.41
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
