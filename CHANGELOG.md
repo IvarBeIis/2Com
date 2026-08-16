@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1] - 2026-08-16
+
+### Changed
+- Modernized Android target to API 36 / Android 16.
+- Enforced JDK 17 toolchain for Gradle and AGP compatibility.
+- Updated GitHub Actions pipeline to install and build against Android SDK 36.
+- Improved release path and signing flow for reproducible APK builds.
+- Added project TODO and clearer build documentation.
+
 ## [1.0.0-beta1] - 2026-05-09
 
 ### Added

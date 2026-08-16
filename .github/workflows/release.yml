@@ -23,14 +23,22 @@ jobs:
           java-version: 17
           cache: gradle
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK packages
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Setup signing keystore
         run: |
@@ -49,7 +57,12 @@ jobs:
           KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
 
       - name: Build release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew clean assembleRelease --stacktrace
+
+      - name: Rename APK asset
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/2com-${GITHUB_REF_NAME}.apk
+          sha256sum app/build/outputs/apk/release/2com-${GITHUB_REF_NAME}.apk
 
       - name: Get version from tag
         id: version
@@ -66,7 +79,7 @@ jobs:
             ## 2Com ${{ github.ref_name }}
 
             ### Installation
-            Download the APK below and install it on your Android device (Android 8.0+).
+            Download the APK below and install it on your Android device (Android 8.0+ / API 26+).
             You may need to enable "Install from unknown sources" in your device settings.
 
             ### What's new
@@ -77,7 +90,7 @@ jobs:
             sha256sum 2com-${{ github.ref_name }}.apk
             ```
           files: |
-            app/build/outputs/apk/release/*.apk
+            app/build/outputs/apk/release/2com-${{ github.ref_name }}.apk
 
   deploy-bootstrap:
     name: Deploy Bootstrap Server

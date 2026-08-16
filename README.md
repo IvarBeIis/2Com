@@ -76,9 +76,9 @@ docker compose up -d
 ## Build
 
 ### Requirements
-- Android Studio Hedgehog+
+- Android Studio Ladybug+ / AGP 8.7+
 - JDK 17
-- Android SDK 35
+- Android SDK 36 (Android 16)
 
 ### Debug build
 ```bash
@@ -92,12 +92,15 @@ docker compose up -d
 
 ### Release APK (signed)
 ```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 export RELEASE_KEYSTORE_PATH=keystore/release.keystore
 export RELEASE_KEYSTORE_PASSWORD=...
 export RELEASE_KEY_ALIAS=...
 export RELEASE_KEY_PASSWORD=...
-./gradlew assembleRelease
+./gradlew clean testDebugUnitTest assembleRelease
 ```
+
+> Android 16 / API 36 target is the recommended configuration for new builds and Play Store compliance. Build and runtime remain on Java 17, which is the safe AGP/Gradle baseline for this project.
 
 ---
 

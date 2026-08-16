@@ -12,8 +12,8 @@
 | Parametr | Hodnota | Důvod |
 |----------|---------|-------|
 | `minSdk` | 26 (Android 8.0) | Hardware-backed Keystore, BiometricPrompt foundations, ConnectivityManager.NetworkCallback |
-| `targetSdk` | 35 (Android 15) | Compliance s Play Store požadavky |
-| `compileSdk` | 35 | Latest stable SDK |
+| `targetSdk` | 36 (Android 16) | Compliance s Play Store požadavky a Android 16 deadline |
+| `compileSdk` | 36 | Latest stable SDK |
 
 ### 1.2 Pokrytí zařízení
 

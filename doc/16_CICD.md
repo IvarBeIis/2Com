@@ -11,8 +11,10 @@
 
 - **Build system:** Gradle 8.x s Version Catalogs (`libs.versions.toml`)
 - **Language plugins:** Kotlin 2.x, KSP, Hilt
+- **Android target:** API 36 / Android 16
+- **JDK:** Java 17 for AGP and Gradle runtime
 - **CI platform:** GitHub Actions (primary), self-hosted runners pro reproducible builds
-- **Release automation:** Fastlane
+- **Release automation:** GitHub Releases + APK asset publishing
 
 ### 1.2 Gradle struktura
 
@@ -53,16 +55,18 @@ plugins {
 }
 
 android {
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions { jvmTarget = "17" }
+    kotlin {
+        jvmToolchain(17)
+    }
 }
 ```
 
