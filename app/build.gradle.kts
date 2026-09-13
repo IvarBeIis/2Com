@@ -67,6 +67,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlin {
         jvmToolchain(17)
@@ -105,6 +106,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
 
     implementation(libs.coroutines.android)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     debugImplementation(libs.compose.ui.tooling)
 

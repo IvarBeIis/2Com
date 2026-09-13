@@ -22,7 +22,15 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.coroutines.core)
     implementation(libs.bouncycastle)
+    // api: HandshakeManager's public surface (VerifiedHello, PreKeyBundle) exposes these types
+    // to core:transport, which performs the socket-level handshake.
+    api(libs.libsignal.android)
     implementation(libs.datastore)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    implementation(libs.sqlcipher)
+    implementation(libs.sqlite.ktx)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
