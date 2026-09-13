@@ -12,6 +12,8 @@ interface Transport {
 
 data class Connection(
     val peerId: String,
+    val peerSigningPublicKey: ByteArray,
+    val peerIdentityPublicKey: ByteArray,
     val send: suspend (ByteArray) -> Unit,
     val receive: Flow<ByteArray>,
     val close: suspend () -> Unit,

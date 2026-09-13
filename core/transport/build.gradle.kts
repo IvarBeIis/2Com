@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.coroutines.core)
+    implementation(libs.bouncycastle)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
     implementation(libs.retrofit)
