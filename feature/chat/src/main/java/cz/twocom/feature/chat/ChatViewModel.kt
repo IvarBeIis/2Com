@@ -69,8 +69,16 @@ class ChatViewModel @Inject constructor(
                 if (conn == null) conn = transportManager.connect(peerId)
 
                 if (conn != null) {
-                    val payload = text.toByteArray(Charsets.UTF_8)
-                    conn.send(payload)
+                    // conn.send() encrypts through the Signal session established during the
+                    // handshake (HandshakeManager) — see 2COM_AUDIT.md #1, this used to send
+                    // conn.send(text.toByteArray(...)) as plaintext.
+                    contactDao.markVerified(
+                        peerId,
+                        conn.peerSigningPublicKey.toHexStringLocal(),
+                        conn.peerIdentityPublicKey.toHexStringLocal(),
+                        System.currentTimeMillis(),
+                    )
+                    conn.send(text.toByteArray(Charsets.UTF_8))
                     messageDao.markDelivered(uuid, System.currentTimeMillis())
                 } else {
                     messageDao.markDelivered(uuid, System.currentTimeMillis(), "FAILED")
@@ -81,3 +89,5 @@ class ChatViewModel @Inject constructor(
         }
     }
 }
+
+private fun ByteArray.toHexStringLocal() = joinToString("") { "%02x".format(it) }

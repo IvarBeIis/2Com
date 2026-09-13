@@ -30,12 +30,15 @@ class AddContactViewModel @Inject constructor(
                 _state.value = AddContactState.Idle
                 true
             } else {
+                // signingPublicKeyHex/identityPublicKeyHex are populated once the handshake
+                // actually verifies this peer (HandshakeManager + ContactDao.markVerified) —
+                // 2COM_AUDIT.md #3: they used to be hardcoded to "" forever.
                 contactDao.insert(
                     ContactEntity(
                         peerHash = hash,
                         displayName = displayName,
                         signingPublicKeyHex = "",
-                        agreementPublicKeyHex = "",
+                        identityPublicKeyHex = "",
                         lastSeenAt = null,
                         createdAt = System.currentTimeMillis(),
                     ),

@@ -7,7 +7,10 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import cz.twocom.BuildConfig
+import cz.twocom.core.database.dao.ContactDao
 import cz.twocom.core.transport.TransportManager
+import cz.twocom.feature.chat.IncomingMessageProcessor
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +23,8 @@ import javax.inject.Inject
 class ConnectionService : Service() {
 
     @Inject lateinit var transportManager: TransportManager
+    @Inject lateinit var incomingMessageProcessor: IncomingMessageProcessor
+    @Inject lateinit var contactDao: ContactDao
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val channelId = "2com_connection"
@@ -28,7 +33,10 @@ class ConnectionService : Service() {
         super.onCreate()
         createNotificationChannel()
         startForeground(1, buildNotification())
-        scope.launch { transportManager.startListening() }
+
+        transportManager.isKnownContact = { peerHash -> contactDao.findByHash(peerHash) != null }
+        incomingMessageProcessor.start(scope)
+        scope.launch { transportManager.startListening(BuildConfig.DHT_BOOTSTRAP_URL) }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
