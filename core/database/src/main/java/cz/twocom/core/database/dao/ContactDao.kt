@@ -25,6 +25,12 @@ interface ContactDao {
     @Query("UPDATE contacts SET lastSeenAt = :ts WHERE peerHash = :hash")
     suspend fun updateLastSeen(hash: String, ts: Long)
 
+    @Query(
+        "UPDATE contacts SET isVerified = 1, signingPublicKeyHex = :signingPublicKeyHex, " +
+            "identityPublicKeyHex = :identityPublicKeyHex, lastSeenAt = :ts WHERE peerHash = :hash",
+    )
+    suspend fun markVerified(hash: String, signingPublicKeyHex: String, identityPublicKeyHex: String, ts: Long)
+
     @Query("DELETE FROM contacts WHERE peerHash = :hash")
     suspend fun deleteByHash(hash: String)
 }

@@ -9,7 +9,7 @@ data class ContactEntity(
     val peerHash: String,
     val displayName: String?,
     val signingPublicKeyHex: String,
-    val agreementPublicKeyHex: String,
+    val identityPublicKeyHex: String,
     val isVerified: Boolean = false,
     val isBlocked: Boolean = false,
     val lastSeenAt: Long?,

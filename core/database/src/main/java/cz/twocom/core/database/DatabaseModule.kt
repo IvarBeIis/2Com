@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.byteArrayPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import cz.twocom.core.crypto.KeystoreEnvelope
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -15,6 +16,7 @@ import java.security.SecureRandom
 import javax.inject.Singleton
 
 private val Context.dbKeyStore by preferencesDataStore("db_key")
+private const val KEYSTORE_ALIAS_DB = "db_master_v1"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -22,8 +24,8 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        val key = runBlocking { getOrCreateDbKey(context) }
+    fun provideDatabase(@ApplicationContext context: Context, envelope: KeystoreEnvelope): AppDatabase {
+        val key = runBlocking { getOrCreateDbKey(context, envelope) }
         return AppDatabase.create(context, key)
     }
 
@@ -33,13 +35,12 @@ object DatabaseModule {
     @Provides
     fun provideMessageDao(db: AppDatabase) = db.messageDao()
 
-    private suspend fun getOrCreateDbKey(context: Context): ByteArray {
-        val prefKey = byteArrayPreferencesKey("db_passphrase")
+    private suspend fun getOrCreateDbKey(context: Context, envelope: KeystoreEnvelope): ByteArray {
+        val prefKey = byteArrayPreferencesKey("db_passphrase_sealed")
         val prefs = context.dbKeyStore.data.firstOrNull()
-        val existing = prefs?.get(prefKey)
-        if (existing != null) return existing
+        prefs?.get(prefKey)?.let { return envelope.open(KEYSTORE_ALIAS_DB, it) }
         val newKey = ByteArray(32).also { SecureRandom().nextBytes(it) }
-        context.dbKeyStore.edit { it[prefKey] = newKey }
+        context.dbKeyStore.edit { it[prefKey] = envelope.seal(KEYSTORE_ALIAS_DB, newKey) }
         return newKey
     }
 }
