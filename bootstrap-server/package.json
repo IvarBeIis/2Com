@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "DHT bootstrap server for 2Com P2P app",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "cors": "^2.8.5"
+    "express": "4.22.2",
+    "cors": "2.8.6",
+    "@noble/ed25519": "3.2.0",
+    "@noble/hashes": "2.4.0"
   }
 }
