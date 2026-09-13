@@ -47,8 +47,7 @@
 | Identita – signing | Ed25519 | 256 bit |
 | Identita – key exchange | X25519 (Curve25519) | 256 bit |
 | Identity hash | BLAKE3 | 256 bit |
-| Transport handshake | Noise XX (Curve25519, ChaCha20-Poly1305, BLAKE2s) | – |
-| Messaging | Signal Protocol (X3DH + Double Ratchet) | – |
+| Handshake + messaging | Signal Protocol (X3DH PreKeyBundle exchange + Double Ratchet), via `org.signal:libsignal` | – |
 | Symetrické šifrování zpráv | ChaCha20-Poly1305 | 256 bit |
 | Symetrické šifrování souborů | AES-256-GCM | 256 bit |
 | Mediální stream | DTLS-SRTP (AES-128-GCM nebo AES-256-GCM) | 128/256 bit |
@@ -61,7 +60,12 @@
 ```
 1. Generate Ed25519 keypair using OS-secure CSPRNG (SecureRandom backed by /dev/urandom)
 2. Generate X25519 keypair using same CSPRNG
-3. Store privates in Android Keystore with StrongBox (if available)
+3. Envelope-encrypt both private keys with an AES-256-GCM key generated natively inside
+   Android Keystore (StrongBox-backed if available, see 3.2) before writing to disk — the
+   raw Ed25519/X25519/libsignal key material itself cannot be generated *inside* Keystore
+   (Keystore has no import/export path for these curves that libsignal's session code can
+   use), so envelope encryption of externally-generated keys is the correct pattern, same
+   as used by Signal's own Android client
 4. Compute identity_hash = BLAKE3(
      "SecureWhisper-Identity-v1" ||
      ed25519_public ||
@@ -101,16 +105,15 @@ Výsledek: 60 hex znaků zobrazených ve 12 skupinách po 5.
 ### 3.1 Hierarchie klíčů
 
 ```
-Android Keystore (StrongBox)
-├── Identity Ed25519 private key (alias: identity_signing_v1)
-├── Identity X25519 private key (alias: identity_agreement_v1)
-└── Database master key (alias: db_master_v1)
+Android Keystore (StrongBox) — AES-256-GCM wrapping keys only, never leave Keystore
+├── identity_wrap_v1   (wraps identity Ed25519 + X25519 private keys, envelope-encrypted on disk)
+└── db_master_v1       (wraps the SQLCipher database passphrase)
 
 In-memory (cleared on app close/lock)
 ├── Decrypted Signal session states
 └── Active connection ephemeral keys
 
-Local DB (SQLCipher encrypted)
+Local DB (SQLCipher encrypted, passphrase itself envelope-encrypted by db_master_v1)
 ├── Signal session state (per peer)
 ├── Pre-keys
 └── Per-attachment encryption keys
@@ -120,16 +123,21 @@ Local DB (SQLCipher encrypted)
 
 ```kotlin
 val keyGenSpec = KeyGenParameterSpec.Builder(
-    "identity_signing_v1",
-    KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+    "identity_wrap_v1",
+    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
 )
-    .setAlgorithmParameterSpec(ECGenParameterSpec("Ed25519"))
-    .setDigests(KeyProperties.DIGEST_NONE)
+    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+    .setKeySize(256)
     .setIsStrongBoxBacked(true)               // Hardware security if available
     .setUserAuthenticationRequired(false)      // false – ratchet nesmí blokovat
     .setInvalidatedByBiometricEnrollment(false)
     .build()
 ```
+
+Toto AES-GCM klíč jen *obaluje* (envelope-encrypts) externě vygenerovaný Ed25519/X25519
+privátní materiál před uložením — Keystore nativně negeneruje klíče na křivkách, které
+`libsignal` umí přímo použít pro X3DH/Double Ratchet.
 
 **Database master key:**
 
